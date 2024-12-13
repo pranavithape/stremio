@@ -2,13 +2,13 @@ import { addonBuilder } from "stremio-addon-sdk";
 import axios from "axios";
 import dotenv from "dotenv";
 import express from "express";
+import path from "path"; // For serving static files
 
-// Load environment variables
 dotenv.config();
 
 const ngrokStreamURL = process.env.STREAM_SERVER_URL; // Public URL of your stream server
 
-// Define the manifest for the add-on
+// Manifest for the add-on
 const manifest = {
     "id": "community.speculativestreamaddon",
     "version": "1.0.0",
@@ -29,14 +29,15 @@ const manifest = {
             "id": "speculative_movies",
             "name": "Speculative Movies",
             "enabled": true,
-            "extra": {
-                "info": "This catalog dynamically adds speculative movies"
-            }
+            "extra": [
+                {
+                    "info": "This catalog dynamically adds speculative movies"
+                }
+            ]
         }
     ]
 };
 
-// Initialize the add-on builder with the manifest
 const builder = new addonBuilder(manifest);
 
 // Torrent Search Function
@@ -76,7 +77,9 @@ builder.defineStreamHandler(async (args) => {
   const streams = torrents.map((torrent) => ({
     name: "Custom Stream Server",
     title: torrent.name,
-    url: `${ngrokStreamURL}/stream?torrent=${encodeURIComponent(torrent.magnet)}`,
+    url: `${ngrokStreamURL}/stream?torrent=${encodeURIComponent(
+      torrent.magnet
+    )}`,
   }));
 
   return { streams };
