@@ -2,7 +2,6 @@ import { addonBuilder } from "stremio-addon-sdk";
 import axios from "axios";
 import dotenv from "dotenv";
 import express from "express";
-import path from "path"; // For serving static files
 
 dotenv.config();
 
@@ -77,12 +76,31 @@ builder.defineStreamHandler(async (args) => {
   const streams = torrents.map((torrent) => ({
     name: "Custom Stream Server",
     title: torrent.name,
-    url: `${ngrokStreamURL}/stream?torrent=${encodeURIComponent(
-      torrent.magnet
-    )}`,
+    url: `${ngrokStreamURL}/stream?torrent=${encodeURIComponent(torrent.magnet)}`,
   }));
 
   return { streams };
+});
+
+// Catalog Handler (required for the manifest definition)
+builder.defineCatalogHandler(async (args) => {
+  const { type, id } = args;
+
+  if (type === "movie" && id === "speculative_movies") {
+    // You could dynamically fetch or filter movies for your catalog
+    const torrents = await searchTorrents("speculative movies");
+
+    return {
+      metas: torrents.map((torrent) => ({
+        id: torrent.magnet, // Use the magnet as the movie ID
+        name: torrent.name, // Movie name
+        poster: "https://via.placeholder.com/150", // You can add an actual poster URL
+        type: "movie", // The type is movie for this catalog
+      })),
+    };
+  }
+
+  return { metas: [] };
 });
 
 // Create the add-on interface
